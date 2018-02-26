@@ -10,6 +10,9 @@ url = "https://pypi.python.org/simple"
 flask = "*"
 flask-mqtt = "*"
 gunicorn = "*"
+flask-sqlalchemy = "*"
+"psycopg2" = "*"
+flask-migrate = "*"
 
 
 [dev-packages]
