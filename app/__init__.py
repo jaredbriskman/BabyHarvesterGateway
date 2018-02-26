@@ -1,23 +1,33 @@
 from flask import Flask, request, Response
 from flask_mqtt import Mqtt
+from flask_migrate import Migrate
 from functools import wraps
+from app.models import *
+import os
 
 app = Flask(__name__)
 
-app.config['MQTT_BROKER_URL'] = ''
-app.config['MQTT_BROKER_PORT'] = 1883
-app.config['MQTT_USERNAME'] = ''
-app.config['MQTT_PASSWORD'] = ''
+# MQTT
+app.config['MQTT_BROKER_URL'] = os.environ["MQTT_BROKER_URL"]
+app.config['MQTT_BROKER_PORT'] = int(os.environ["MQTT_BROKER_PORT"])
+app.config['MQTT_USERNAME'] = os.environ["MQTT_USERNAME"]
+app.config['MQTT_PASSWORD'] = os.environ["MQTT_PASSWORD"]
 app.config['MQTT_KEEPALIVE'] = 5
 app.config['MQTT_TLS_ENABLED'] = False
+mqtt = Mqtt(app)
 
-#mqtt = Mqtt(app)
+# DB
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Handles deprecation warning
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ["DATABASE_URL"]
+db.init_app(app)
+migrate = Migrate(app, db)
 
-def check_auth(username, password):
+def check_auth(name, password):
     """This function is called to check if a username /
     password combination is valid.
     """
-    return username == 'admin' and password == 'secret'
+    auth_check = User.query.filter_by(name=name,password=password).first()
+    return (auth_check is not None)
 
 def authenticate():
     """Sends a 401 response that enables basic auth"""
