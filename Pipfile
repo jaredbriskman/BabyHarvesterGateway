@@ -13,6 +13,7 @@ gunicorn = "*"
 flask-sqlalchemy = "*"
 "psycopg2" = "*"
 flask-migrate = "*"
+flask-sslify = "*"
 
 
 [dev-packages]

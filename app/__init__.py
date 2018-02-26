@@ -1,11 +1,18 @@
 from flask import Flask, request, Response
 from flask_mqtt import Mqtt
 from flask_migrate import Migrate
+from flask_sslify import SSLify
 from functools import wraps
 from app.models import *
 import os
 
 app = Flask(__name__)
+
+# Debug
+if os.environ["FLASK_ENV"] is 'DEV':
+    app.config['DEBUG'] = True
+else:
+    app.config['DEBUG'] = False
 
 # MQTT
 app.config['MQTT_BROKER_URL'] = os.environ["MQTT_BROKER_URL"]
@@ -21,6 +28,9 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Handles deprecation warn
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ["DATABASE_URL"]
 db.init_app(app)
 migrate = Migrate(app, db)
+
+# SSL
+sslify = SSLify(app, age=300)
 
 def check_auth(name, password):
     """This function is called to check if a username /
