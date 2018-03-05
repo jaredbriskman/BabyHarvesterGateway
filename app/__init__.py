@@ -30,26 +30,33 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ["DATABASE_URL"]
 db.init_app(app)
 migrate = Migrate(app, db)
 
-def check_auth(name, password):
+def check_auth(name, password, realm):
     """Validates credentials against db"""
-    auth_check = User.query.filter_by(name=name,password=password).first()
-    return (auth_check is not None)
+    if realm is "changeToken":
+        return (password == os.environ["APP_SECRET"])
+    else:
+        auth_check = User.query.filter_by(name=name,password=password).first()
+        return (auth_check is not None)
 
-def authenticate():
+def authenticate(realm="Login Required"):
     """Sends a 401 response that enables basic auth"""
     return Response(
     'Could not verify your access level for that URL.\n'
     'You have to login with proper credentials', 401,
-    {'WWW-Authenticate': 'Basic realm="Login Required"'})
+    {'WWW-Authenticate': 'Basic realm="{}"'.format(realm)})
 
-def requires_auth(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        auth = request.authorization
-        if not auth or not check_auth(auth.username, auth.password):
-            return authenticate()
-        return f(*args, **kwargs)
-    return decorated
+def requires_auth(realm="Login Required"):
+    def decorator(f):
+        @wraps(f)
+        def decorated(*args, **kwargs):
+            #if realm is None:
+            #    realm = "Login Required" 
+            auth = request.authorization
+            if not auth or not check_auth(auth.username, auth.password, realm):
+                return authenticate(realm)
+            return f(*args, **kwargs)
+        return decorated
+    return decorator
 
 def pass_text(channel=None):
     """Generic method to pass a payload to a device over MQTT"""
@@ -69,25 +76,30 @@ def handle_logging(client, userdata, level, buf):
 def index():
     return 'Welcome to the Baby Harvester Gateway.'
 
+@app.route('/changetoken')
+@requires_auth(realm="changeToken")
+def change_token():
+    print("token changed")
+    return "token changed"
 
 # These are rather boilerplate, but allow for endpoint specific configuration
 @app.route('/display/text', methods=['GET', 'POST'])
-@requires_auth
+@requires_auth()
 def display_text():
     return pass_text(channel="display/text")
 
 @app.route('/display/url', methods=['GET', 'POST'])
-@requires_auth
+@requires_auth()
 def display_url():
     return pass_text(channel="display/url")
 
 @app.route('/print/text', methods=['GET', 'POST'])
-@requires_auth
+@requires_auth()
 def print_text():
     return pass_text(channel="print/text")
 
 @app.route('/light/run', methods=['GET', 'POST'])
-@requires_auth
+@requires_auth()
 def light_run():
     """Turn on the light for a specified amount of time, in seconds"""
     return pass_text(channel="light/run")
