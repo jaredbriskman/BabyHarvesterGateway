@@ -1,5 +1,5 @@
 from flask import Flask, request, Response
-from flask_mqtt import Mqtt
+from flask_mqtt import Mqtt, MQTT_LOG_ERR
 from flask_migrate import Migrate
 from flask_sslify import SSLify
 from functools import wraps
@@ -53,9 +53,23 @@ def requires_auth(f):
         return f(*args, **kwargs)
     return decorated
 
+@mqtt.on_log()
+def handle_logging(client, userdata, level, buf):
+    if level == MQTT_LOG_ERR:
+        print('MQTT Error: {}'.format(buf))
+
 @app.route('/')
 def index():
     return 'Welcome to the Baby Harvester Gateway.'
+
+@app.route('/display/text', methods=['GET', 'POST'])
+@requires_auth
+def display_text():
+    device = request.authorization.username
+    channel = "{}/display/text".format(device)
+    data = request.get_json()
+    mqtt.publish(channel, data['message'])
+    return 'Message {} published to topic {}'.format(data['message'], channel)
 
 @app.route('/testtext', methods=['GET', 'POST'])
 @requires_auth
