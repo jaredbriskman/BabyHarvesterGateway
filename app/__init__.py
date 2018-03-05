@@ -31,9 +31,7 @@ db.init_app(app)
 migrate = Migrate(app, db)
 
 def check_auth(name, password):
-    """This function is called to check if a username /
-    password combination is valid.
-    """
+    """Validates credentials against db"""
     auth_check = User.query.filter_by(name=name,password=password).first()
     return (auth_check is not None)
 
@@ -54,6 +52,7 @@ def requires_auth(f):
     return decorated
 
 def pass_text(channel=None):
+    """Generic method to pass a payload to a device over MQTT"""
     device = request.authorization.username
     channel = "{}/{}".format(device, channel)
     data = request.get_json()
@@ -70,12 +69,26 @@ def handle_logging(client, userdata, level, buf):
 def index():
     return 'Welcome to the Baby Harvester Gateway.'
 
+
+# These are rather boilerplate, but allow for endpoint specific configuration
 @app.route('/display/text', methods=['GET', 'POST'])
 @requires_auth
 def display_text():
     return pass_text(channel="display/text")
 
+@app.route('/display/url', methods=['GET', 'POST'])
+@requires_auth
+def display_url():
+    return pass_text(channel="display/url")
+
 @app.route('/print/text', methods=['GET', 'POST'])
 @requires_auth
 def print_text():
     return pass_text(channel="print/text")
+
+@app.route('/light/run', methods=['GET', 'POST'])
+@requires_auth
+def light_run():
+    """Turn on the light for a specified amount of time, in seconds"""
+    return pass_text(channel="light/run")
+
