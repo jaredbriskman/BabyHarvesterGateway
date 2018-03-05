@@ -53,6 +53,14 @@ def requires_auth(f):
         return f(*args, **kwargs)
     return decorated
 
+def pass_text(channel=None):
+    device = request.authorization.username
+    channel = "{}/{}".format(device, channel)
+    data = request.get_json()
+    mqtt.publish(channel, data['message'])
+    return 'Message {} published to topic {}'.format(data['message'], channel)
+    
+
 @mqtt.on_log()
 def handle_logging(client, userdata, level, buf):
     if level == MQTT_LOG_ERR:
@@ -65,18 +73,9 @@ def index():
 @app.route('/display/text', methods=['GET', 'POST'])
 @requires_auth
 def display_text():
-    device = request.authorization.username
-    channel = "{}/display/text".format(device)
-    data = request.get_json()
-    mqtt.publish(channel, data['message'])
-    return 'Message {} published to topic {}'.format(data['message'], channel)
+    return pass_text(channel="display/text")
 
-@app.route('/testtext', methods=['GET', 'POST'])
+@app.route('/print/text', methods=['GET', 'POST'])
 @requires_auth
-def text_test():
-    try:
-        data = request.get_json()
-        mqtt.publish(data['topic'], data['message'])
-    except Error:
-        return 'MQTT problems'
-    return 'Message {} published to topic {}'.format(data['message'], data['topic'])
+def print_text():
+    return pass_text(channel="print/text")
