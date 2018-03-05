@@ -57,7 +57,12 @@ def requires_auth(f):
 def index():
     return 'Welcome to the Baby Harvester Gateway.'
 
-@app.route('/secret')
+@app.route('/testtext', methods=['GET', 'POST'])
 @requires_auth
-def secret_page():
-    return "It's a secret."
+def text_test():
+    try:
+        data = request.get_json()
+        mqtt.publish(data['topic'], data['message'])
+    except Error:
+        return 'MQTT problems'
+    return 'Message {} published to topic {}'.format(data['message'], data['topic'])
