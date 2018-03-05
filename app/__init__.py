@@ -5,6 +5,7 @@ from flask_sslify import SSLify
 from functools import wraps
 from app.models import *
 import os
+import random
 
 app = Flask(__name__)
 
@@ -79,8 +80,17 @@ def index():
 @app.route('/changetoken')
 @requires_auth(realm="changeToken")
 def change_token():
-    print("token changed")
-    return "token changed"
+    device = request.authorization.username
+    u = User.query.filter_by(name=device).first()
+    if u is None: # New Device
+        u = User(name=device, password=str(random.randint(0, 2 ** 10)))
+    else: # Existing Device
+        u.password=str(random.randint(0, 2 ** 10))
+    print("changing token", u)
+    db.session.add(u)
+    db.session.commit()
+    mqtt.publish("{}/print/text".format(device),"{}".format(u.password))
+    return "Token changed"
 
 # These are rather boilerplate, but allow for endpoint specific configuration
 @app.route('/display/text', methods=['GET', 'POST'])
