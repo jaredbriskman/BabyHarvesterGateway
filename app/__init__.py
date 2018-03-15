@@ -83,13 +83,13 @@ def change_token():
     device = request.authorization.username
     u = User.query.filter_by(name=device).first()
     if u is None: # New Device
-        u = User(name=device, password=str(random.randint(0, 2 ** 10)))
+        u = User(name=device, password=str(random.randint(0, 2 ** 12)))
     else: # Existing Device
         u.password=str(random.randint(0, 2 ** 10))
     print("changing token", u)
     db.session.add(u)
     db.session.commit()
-    mqtt.publish("{}/print/text".format(device),"{}".format(u.password))
+    mqtt.publish("{}/print/text".format(device),"Your new token is: {}".format(u.password))
     return "Token changed"
 
 # These are rather boilerplate, but allow for endpoint specific configuration
