@@ -2,12 +2,15 @@ from flask import Flask, request, Response
 from flask_mqtt import Mqtt, MQTT_LOG_ERR
 from flask_migrate import Migrate
 from flask_sslify import SSLify
+from flask_cors import CORS
 from functools import wraps
 from app.models import *
 import os
 import random
 
 app = Flask(__name__)
+
+CORS(app)
 
 # Debug
 if os.environ["FLASK_ENV"] is 'prod':
