@@ -92,7 +92,7 @@ def change_token():
     print("changing token", u)
     db.session.add(u)
     db.session.commit()
-    mqtt.publish("{}/print/text".format(device),"Your new token is: {}".format(u.password))
+    mqtt.publish("{}/print/text".format(device),"My name is {}\nMy new token is: {}".format(device, u.password))
     return "Token changed"
 
 # These are rather boilerplate, but allow for endpoint specific configuration
