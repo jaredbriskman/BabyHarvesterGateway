@@ -20,9 +20,5 @@
     {
 	    "plan":"heroku-postgresql"
     }
-  ], 
-  "scripts":
-    {
-      "postdeploy":"upgrade"
-    }
+  ] 
 }
