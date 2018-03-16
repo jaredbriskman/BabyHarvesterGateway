@@ -9,7 +9,7 @@
     "FLASK_ENV":"prod",
     "MQTT_URL": {
       "description": "Full URI for your mqtt broker.",
-      "value": "mqtt://user:pass@test.hivemq.com:1883"
+      "value": "mqtt://user:pass@broker.hivemq.com:1883"
     }, 
     "APP_SECRET": {
       "description": "A secret key for verifying the integrity of signed cookies.",
