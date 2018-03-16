@@ -1,0 +1,28 @@
+{
+  "name": "baby-harvester-gateway",
+  "description": "The backend server for the baby harvester, from HtL 2018",
+  "repository": "https://github.com/jaredbriskman/BabyHarvesterGateway",
+  "keywords": ["flask", "python", "MQTT", "HtL","Olin","Baby Harvester"],
+  "success_url":"/",
+  "env":{
+    "FLASK_APP":"__init__.py",
+    "FLASK_ENV":"prod",
+    "MQTT_URL": {
+      "description": "Full URI for your mqtt broker.",
+      "value": "mqtt://user:pass@test.hivemq.com:1883"
+    }, 
+    "APP_SECRET": {
+      "description": "A secret key for verifying the integrity of signed cookies.",
+      "generator": "secret"
+    }
+  },
+  "addons":[
+    {
+	    "plan":"heroku-postgresql"
+    }
+  ], 
+  "scripts":
+    {
+      "postdeploy":"upgrade"
+    }
+}
