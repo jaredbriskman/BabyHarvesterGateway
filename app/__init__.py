@@ -5,12 +5,13 @@ from flask_sslify import SSLify
 from flask_cors import CORS
 from functools import wraps
 from app.models import *
+from urllib.parse import urlparse
 import os
 import random
 
 app = Flask(__name__)
 
-CORS(app)
+CORS(app) #Enable cross origin requests to API
 
 # Debug
 if os.environ["FLASK_ENV"] is 'prod':
@@ -20,10 +21,11 @@ else:
     app.config['DEBUG'] = True
 
 # MQTT
-app.config['MQTT_BROKER_URL'] = os.environ["MQTT_BROKER_URL"]
-app.config['MQTT_BROKER_PORT'] = int(os.environ["MQTT_BROKER_PORT"])
-app.config['MQTT_USERNAME'] = os.environ["MQTT_USERNAME"]
-app.config['MQTT_PASSWORD'] = os.environ["MQTT_PASSWORD"]
+mqtt_url = urlparse(os.environ["MQTT_URL"])
+app.config['MQTT_BROKER_URL'] = mqtt_url.hostname
+app.config['MQTT_BROKER_PORT'] = int(mqtt_url.port)
+app.config['MQTT_USERNAME'] = mqtt_url.username
+app.config['MQTT_PASSWORD'] = mqtt_url.password
 app.config['MQTT_KEEPALIVE'] = 5
 app.config['MQTT_TLS_ENABLED'] = False
 mqtt = Mqtt(app)
@@ -92,7 +94,7 @@ def change_token():
     print("changing token", u)
     db.session.add(u)
     db.session.commit()
-    mqtt.publish("{}/print/text".format(device),"My name is {}\nMy new token is: {}".format(device, u.password))
+    mqtt.publish("{}/print/text".format(device),"My name is: {}\nMy new token is: {}".format(device, u.password))
     return "Token changed"
 
 # These are rather boilerplate, but allow for endpoint specific configuration
